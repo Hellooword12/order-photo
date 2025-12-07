@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head}">
+    <title>Настройки - Админ панель</title>
+</head>
+<body>
+<div th:replace="admin/layout :: header"></div>
+
+<div class="flex">
+    <div th:replace="admin/layout :: aside"></div>
+
+    <main class="flex-1 p-6">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Настройки</h1>
+            <p class="text-gray-600">Управление настройками системы</p>
+        </div>
+
+        <!-- Settings Tabs -->
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="border-b">
+                <nav class="flex -mb-px">
+                    <button id="general-tab" class="tab-button py-4 px-6 text-sm font-medium border-b-2 border-blue-500 text-blue-600" onclick="switchTab('general')">
+                        Основные
+                    </button>
+                    <button id="services-tab" class="tab-button py-4 px-6 text-sm font-medium text-gray-500 hover:text-gray-700" onclick="switchTab('services')">
+                        Услуги
+                    </button>
+                    <button id="notifications-tab" class="tab-button py-4 px-6 text-sm font-medium text-gray-500 hover:text-gray-700" onclick="switchTab('notifications')">
+                        Уведомления
+                    </button>
+                    <button id="system-tab" class="tab-button py-4 px-6 text-sm font-medium text-gray-500 hover:text-gray-700" onclick="switchTab('system')">
+                        Система
+                    </button>
+                </nav>
+            </div>
+
+            <!-- General Settings -->
+            <div id="general-content" class="tab-content p-6">
+                <form id="general-settings-form">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-medium mb-4">Основные настройки</h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Название компании</label>
+                                    <input type="text" id="companyName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="PhotoPrint">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email для уведомлений</label>
+                                    <input type="email" id="notificationEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="admin@photoprint.ru">
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Описание сайта</label>
+                                <textarea id="siteDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">Сервис печати фотографий онлайн</textarea>
+                            </div>
+                        </div>
+
+                        <div class="border-t pt-6">
+                            <h3 class="text-lg font-medium mb-4">Настройки заказов</h3>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="autoConfirm" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="autoConfirm" class="ml-2 block text-sm text-gray-700">Автоподтверждение заказов</label>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="emailNotifications" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                    <label for="emailNotifications" class="ml-2 block text-sm text-gray-700">Уведомления по email</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                Сохранить изменения
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Services Settings -->
+            <div id="services-content" class="tab-content p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-medium">Управление услугами</h3>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        + Добавить услугу
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Service List -->
+                    <div class="border rounded-lg">
+                        <div class="p-4 border-b bg-gray-50">
+                            <h4 class="font-medium">Печать фотографий</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Базовые размеры: 10x15, 15x20, 20x30</p>
+                                    <p class="text-sm font-medium">Активна</p>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-800">Редактировать</button>
+                                    <button class="text-red-600 hover:text-red-800">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg">
+                        <div class="p-4 border-b bg-gray-50">
+                            <h4 class="font-medium">Фотокниги</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Размеры: A4, A5, 20x20</p>
+                                    <p class="text-sm font-medium text-green-600">Активна</p>
+                                </div>
+                                <div class="space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-800">Редактировать</button>
+                                    <button class="text-red-600 hover:text-red-800">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Settings -->
+            <div id="notifications-content" class="tab-content p-6 hidden">
+                <h3 class="text-lg font-medium mb-6">Настройки уведомлений</h3>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-medium">Уведомления о новых заказах</h4>
+                                <p class="text-sm text-gray-600">Отправлять уведомление при поступлении нового заказа</p>
+                            </div>
+                            <input type="checkbox" class="h-5 w-5 text-blue-600" checked>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-medium">Уведомления об изменении статуса</h4>
+                                <p class="text-sm text-gray-600">Уведомлять клиентов об изменении статуса заказа</p>
+                            </div>
+                            <input type="checkbox" class="h-5 w-5 text-blue-600" checked>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-medium">Email рассылка</h4>
+                                <p class="text-sm text-gray-600">Отправлять промо-предложения клиентам</p>
+                            </div>
+                            <input type="checkbox" class="h-5 w-5 text-blue-600">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                            Сохранить настройки
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div id="system-content" class="tab-content p-6 hidden">
+                <h3 class="text-lg font-medium mb-6">Системные настройки</h3>
+
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Время автоматического резервного копирования</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>Ежедневно в 02:00</option>
+                                <option>Еженедельно</option>
+                                <option>Вручную</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Лимит файлов (МБ)</label>
+                            <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value="50">
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-6">
+                        <h4 class="font-medium mb-4">Очистка системы</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Удалить заказы старше 30 дней</span>
+                                <button class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
+                                    Очистить
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Удалить неиспользуемые изображения</span>
+                                <button class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
+                                    Очистить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-6">
+                        <h4 class="font-medium mb-4">Информация о системе</h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Версия системы:</span>
+                                    <span class="font-medium">1.0.0</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Последнее обновление:</span>
+                                    <span class="font-medium" id="lastUpdate">2024-01-15</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Статус базы данных:</span>
+                                    <span class="font-medium text-green-600">Работает</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Загрузка CPU:</span>
+                                    <span class="font-medium" id="cpuLoad">25%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Tab switching functionality
+    function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        // Remove active styles from all tabs
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('border-blue-500', 'text-blue-600');
+            button.classList.add('text-gray-500');
+        });
+
+        // Show selected tab content
+        document.getElementById(`${tabName}-content`).classList.remove('hidden');
+
+        // Add active styles to selected tab
+        document.getElementById(`${tabName}-tab`).classList.add('border-blue-500', 'text-blue-600');
+        document.getElementById(`${tabName}-tab`).classList.remove('text-gray-500');
+    }
+
+    // Form handling
+    document.getElementById('general-settings-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveGeneralSettings();
+    });
+
+    async function saveGeneralSettings() {
+        const formData = {
+            companyName: document.getElementById('companyName').value,
+            notificationEmail: document.getElementById('notificationEmail').value,
+            siteDescription: document.getElementById('siteDescription').value,
+            autoConfirm: document.getElementById('autoConfirm').checked,
+            emailNotifications: document.getElementById('emailNotifications').checked
+        };
+
+        try {
+            const response = await fetch('/api/admin/settings/general', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                alert('Настройки успешно сохранены');
+            } else {
+                alert('Ошибка при сохранении настроек');
+            }
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            alert('Ошибка при сохранении настроек');
+        }
+    }
+
+    // Load current settings on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCurrentSettings();
+    });
+
+    async function loadCurrentSettings() {
+        try {
+            const response = await fetch('/api/admin/settings');
+            const settings = await response.json();
+
+            // Populate form fields with current settings
+            if (settings.companyName) {
+                document.getElementById('companyName').value = settings.companyName;
+            }
+            if (settings.notificationEmail) {
+                document.getElementById('notificationEmail').value = settings.notificationEmail;
+            }
+            if (settings.siteDescription) {
+                document.getElementById('siteDescription').value = settings.siteDescription;
+            }
+            if (settings.autoConfirm !== undefined) {
+                document.getElementById('autoConfirm').checked = settings.autoConfirm;
+            }
+            if (settings.emailNotifications !== undefined) {
+                document.getElementById('emailNotifications').checked = settings.emailNotifications;
+            }
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    }
+</script>
+</body>
+</html>

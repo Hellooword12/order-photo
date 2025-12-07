@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head}">
+    <title th:text="${pageTitle} + ' - Админка'"></title>
+</head>
+<body>
+<div th:replace="~{admin/layout :: header}"></div>
+
+<div class="flex">
+    <div th:replace="~{admin/layout :: aside}"></div>
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <h1 class="text-3xl font-bold mb-6" th:text="${pageTitle}"></h1>
+
+        <!-- Сообщения -->
+        <div th:if="${successMessage}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <span th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <form th:object="${service}"
+              th:action="${service.id != null} ?
+              @{/admin/services/update/{id}(id=${service.id})} :
+              @{/admin/services/save}"
+              method="post"
+              enctype="multipart/form-data"
+              class="bg-white shadow-md rounded-lg p-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Название услуги *</label>
+                    <input type="text" th:field="*{name}" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    <div th:if="${#fields.hasErrors('name')}" class="text-red-500 text-sm mt-1">
+                        <span th:errors="*{name}"></span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Порядок отображения</label>
+                    <input type="number" th:field="*{displayOrder}" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+                <textarea th:field="*{description}" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                <div th:if="${#fields.hasErrors('description')}" class="text-red-500 text-sm mt-1">
+                    <span th:errors="*{description}"></span>
+                </div>
+            </div>
+
+            <!-- Блок для размеров и цен -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Размеры и цены *</label>
+                <div id="sizes-container">
+                    <!-- Существующие размеры -->
+                    <div th:each="size, stat : *{sizes}" class="size-item grid grid-cols-1 md:grid-cols-4 gap-4 mb-3 p-4 border rounded-lg">
+                        <input type="hidden" th:field="*{sizes[__${stat.index}__].id}">
+                        <input type="hidden" th:field="*{sizes[__${stat.index}__].displayOrder}" th:value="${stat.index}">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Размер (ключ) *</label>
+                            <input type="text" th:field="*{sizes[__${stat.index}__].size}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                   placeholder="10x15" required>
+                            <p class="text-xs text-gray-500 mt-1">Короткий код: 10x15, A4, A3</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Название размера *</label>
+                            <input type="text" th:field="*{sizes[__${stat.index}__].sizeName}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                   placeholder="10x15 см" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Цена (₽) *</label>
+                            <input type="number" th:field="*{sizes[__${stat.index}__].price}"
+                                   step="0.01" min="0"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                   placeholder="50.00" required>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" onclick="removeSize(this)"
+                                    class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Новые размеры будут добавляться сюда -->
+                </div>
+
+                <button type="button" onclick="addSize()"
+                        class="mt-3 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    <i class="fas fa-plus mr-2"></i>Добавить размер
+                </button>
+
+                <p class="text-xs text-gray-500 mt-2">Минимум один размер должен быть указан</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Класс иконки</label>
+                    <input type="text" th:field="*{iconClass}" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="fas fa-print">
+                    <p class="text-xs text-gray-500 mt-1">Font Awesome классы, например: fas fa-print</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Градиент From</label>
+                    <input type="text" th:field="*{gradientFrom}" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="#667eea">
+                    <p class="text-xs text-gray-500 mt-1">HEX цвет или Tailwind класс</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Градиент To</label>
+                    <input type="text" th:field="*{gradientTo}" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="#764ba2">
+                    <p class="text-xs text-gray-500 mt-1">HEX цвет или Tailwind класс</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Цвет кнопки</label>
+                <input type="text" th:field="*{buttonColor}" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                       placeholder="#667eea">
+                <p class="text-xs text-gray-500 mt-1">HEX цвет или Tailwind класс</p>
+            </div>
+
+            <!-- Блок для изображения -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Изображение услуги</label>
+
+                <!-- Текущее изображение -->
+                <div th:if="*{imageUrl}" class="mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Текущее изображение:</p>
+                    <img th:src="*{imageUrl}" alt="Current service image" class="h-32 w-32 object-cover rounded-lg border">
+                    <div class="mt-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="deleteCurrentImage" value="true" class="rounded border-gray-300 text-red-600 shadow-sm">
+                            <span class="ml-2 text-sm text-red-600">Удалить текущее изображение</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Загрузка нового изображения -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Загрузить новое изображение</label>
+                    <input type="file" name="imageFile" accept="image/*"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="text-xs text-gray-500 mt-1">Поддерживаемые форматы: JPG, PNG, WebP. Макс. размер: 5MB</p>
+                </div>
+
+                <!-- Выбор из существующих изображений -->
+                <div th:if="${not #lists.isEmpty(availableImages)}" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Или выбрать из существующих:</label>
+                    <div class="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-2 border rounded-md">
+                        <div th:each="img : ${availableImages}" class="relative">
+                            <input type="radio" th:value="${img}" th:field="*{imageUrl}"
+                                   class="hidden peer" th:id="'img-' + ${imgStat.index}">
+                            <label th:for="'img-' + ${imgStat.index}"
+                                   class="block cursor-pointer border-2 border-transparent peer-checked:border-blue-500 rounded overflow-hidden">
+                                <img th:src="${img}" alt="Available image" class="h-16 w-16 object-cover">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ручной ввод URL -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Или указать URL изображения:</label>
+                    <input type="text" th:field="*{imageUrl}" class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="https://example.com/image.jpg">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="flex items-center">
+                    <input type="checkbox" th:field="*{active}" class="rounded border-gray-300 text-indigo-600 shadow-sm">
+                    <span class="ml-2 text-sm text-gray-700">Активная услуга</span>
+                </label>
+            </div>
+
+            <div class="flex justify-between">
+                <a href="/admin/services" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Отмена
+                </a>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function addSize() {
+        const container = document.getElementById('sizes-container');
+        const index = container.children.length;
+
+        const sizeHtml = `
+            <div class="size-item grid grid-cols-1 md:grid-cols-4 gap-4 mb-3 p-4 border rounded-lg">
+                <input type="hidden" name="sizes[${index}].id" value="">
+                <input type="hidden" name="sizes[${index}].displayOrder" value="${index}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Размер (ключ) *</label>
+                    <input type="text" name="sizes[${index}].size"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="10x15" required>
+                    <p class="text-xs text-gray-500 mt-1">Короткий код: 10x15, A4, A3</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Название размера *</label>
+                    <input type="text" name="sizes[${index}].sizeName"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="10x15 см" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Цена (₽) *</label>
+                    <input type="number" name="sizes[${index}].price"
+                           step="0.01" min="0"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="50.00" required>
+                </div>
+                <div class="flex items-end">
+                    <button type="button" onclick="removeSize(this)"
+                            class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', sizeHtml);
+    }
+
+    function removeSize(button) {
+        const sizeItem = button.closest('.size-item');
+        if (document.querySelectorAll('.size-item').length > 1) {
+            sizeItem.remove();
+            reindexSizes();
+        } else {
+            alert('Должен остаться хотя бы один размер');
+        }
+    }
+
+    function reindexSizes() {
+        const container = document.getElementById('sizes-container');
+        const sizeItems = container.querySelectorAll('.size-item');
+
+        sizeItems.forEach((item, index) => {
+            const idInput = item.querySelector('input[name$=".id"]');
+            const displayOrderInput = item.querySelector('input[name$=".displayOrder"]');
+            const sizeInput = item.querySelector('input[name$=".size"]');
+            const sizeNameInput = item.querySelector('input[name$=".sizeName"]');
+            const priceInput = item.querySelector('input[name$=".price"]');
+
+            if (idInput) idInput.name = `sizes[${index}].id`;
+            if (displayOrderInput) {
+                displayOrderInput.name = `sizes[${index}].displayOrder`;
+                displayOrderInput.value = index;
+            }
+            if (sizeInput) sizeInput.name = `sizes[${index}].size`;
+            if (sizeNameInput) sizeNameInput.name = `sizes[${index}].sizeName`;
+            if (priceInput) priceInput.name = `sizes[${index}].price`;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Предпросмотр загружаемого изображения
+        const fileInput = document.querySelector('input[name="imageFile"]');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.createElement('div');
+                        preview.className = 'mt-2';
+                        preview.innerHTML = `
+                            <p class="text-sm text-gray-600 mb-2">Предпросмотр:</p>
+                            <img src="${e.target.result}" alt="Preview" class="h-32 w-32 object-cover rounded-lg border">
+                        `;
+
+                        const oldPreview = document.querySelector('.upload-preview');
+                        if (oldPreview) oldPreview.remove();
+
+                        preview.className = 'upload-preview mt-2';
+                        fileInput.parentNode.appendChild(preview);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Инициализация - добавляем один размер если нет существующих
+        const existingSizes = document.querySelectorAll('.size-item');
+        if (existingSizes.length === 0) {
+            addSize();
+        }
+
+        // Очистка выбора файла при выборе радио-кнопки
+        const radioInputs = document.querySelectorAll('input[type="radio"][name="imageUrl"]');
+        radioInputs.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (fileInput) {
+                    fileInput.value = '';
+                    const preview = document.querySelector('.upload-preview');
+                    if (preview) preview.remove();
+                }
+            });
+        });
+
+        // Очистка радио-кнопок при загрузке файла
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                radioInputs.forEach(radio => radio.checked = false);
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

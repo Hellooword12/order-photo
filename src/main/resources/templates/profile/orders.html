@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}">
+    <title>Мои заказы</title>
+    <style>
+        .order-image {
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+        .order-image:hover {
+            transform: scale(1.05);
+        }
+        #imageModal {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .image-placeholder {
+            width: 100px;
+            height: 80px;
+            background: #f3f4f6;
+            border: 1px dashed #d1d5db;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .discount-card-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+        .discount-badge {
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .stat-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .discount-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+            z-index: 1; /* Добавляем z-index */
+        }
+        .discount-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 10px 10px;
+            transform: rotate(30deg);
+            z-index: -1; /* Отправляем паттерн на задний план */
+            opacity: 0.7; /* Уменьшаем непрозрачность */
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<section class="py-8 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold mb-6">Мои заказы</h1>
+
+            <!-- Блок статистики и скидочной карты -->
+            <div th:if="${discountCardStats}" class="bg-white rounded-lg shadow mb-6 p-6">
+                <h2 class="text-xl font-bold mb-6">Общая статистика</h2>
+
+                <!-- Общая статистика в карточках -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Карточка 1: Всего заказов -->
+                    <div class="stat-card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 text-center">
+                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shopping-bag text-white text-lg"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-blue-600 mb-2" th:text="${discountCardStats.totalOrders}"></p>
+                        <p class="text-gray-700 font-medium">Всего заказов</p>
+                    </div>
+
+                    <!-- Карточка 2: Общая сумма -->
+                    <div class="stat-card bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-6 text-center">
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-ruble-sign text-white text-lg"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-green-600 mb-2"
+                           th:text="${#numbers.formatDecimal(discountCardStats.totalSpent, 1, 2)} + ' ₽'"></p>
+                        <p class="text-gray-700 font-medium">Общая сумма</p>
+                    </div>
+
+                    <!-- Карточка 3: Средний чек -->
+                    <div class="stat-card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6 text-center">
+                        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-white text-lg"></i>
+                        </div>
+                        <p class="text-3xl font-bold text-purple-600 mb-2"
+                           th:text="${discountCardStats.totalOrders > 0 ?
+                         #numbers.formatDecimal(discountCardStats.totalSpent / discountCardStats.totalOrders, 1, 2) + ' ₽' :
+                         '0 ₽'}"></p>
+                        <p class="text-gray-700 font-medium">Средний чек</p>
+                    </div>
+                </div>
+
+                <!-- Активная скидочная карта -->
+                <div th:if="${discountCardStats.activeCard}" class="border-t pt-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fas fa-credit-card text-purple-500 mr-2"></i>
+                        Ваша скидочная карта
+                    </h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Карточка 1: Информация о карте -->
+                        <div class="bg-gradient-to-br from-teal-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h4 class="font-bold text-lg" th:text="${discountCardStats.activeCard.cardName}"></h4>
+                                    <p class="text-purple-200 text-sm">Скидочная карта</p>
+                                </div>
+                                <i class="fas fa-id-card text-2xl text-purple-200"></i>
+                            </div>
+                            <div class="bg-purple-400 bg-opacity-30 rounded-lg p-3 mt-4">
+                                <p class="text-xs text-purple-200 mb-1">Номер карты</p>
+                                <p class="font-mono font-bold text-lg tracking-wider" th:text="${discountCardStats.activeCard.code}"></p>
+                            </div>
+                        </div>
+
+                        <!-- Карточка 2: Скидка и лимиты -->
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <h4 class="font-bold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-percentage text-green-500 mr-2"></i>
+                                Скидка и лимиты
+                            </h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Размер скидки:</span>
+                                    <span class="font-bold text-green-600">
+                            <span th:if="${discountCardStats.activeCard.discountType == 'PERCENTAGE'}"
+                                  th:text="${discountCardStats.activeCard.discountValue} + '%'"></span>
+                            <span th:if="${discountCardStats.activeCard.discountType == 'FIXED_AMOUNT'}"
+                                  th:text="${discountCardStats.activeCard.discountValue} + ' ₽'"></span>
+                        </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Использовано:</span>
+                                    <span class="font-bold text-blue-600"
+                                          th:text="${discountCardStats.activeCard.usageCount} + ' / ' + ${discountCardStats.activeCard.usageLimit}"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Карточка 3: Статистика использования -->
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                            <h4 class="font-bold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+                                Статистика
+                            </h4>
+                            <div th:if="${discountCardStats?.cardStats != null}" class="space-y-4">
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-gray-800"
+                                       th:text="${discountCardStats.cardStats.ordersWithCard != null ? discountCardStats.cardStats.ordersWithCard : 0}">0</p>
+                                    <p class="text-gray-600 text-sm">Заказов с картой</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-green-600"
+                                       th:text="${discountCardStats.cardStats.totalSaved != null ?
+                         #numbers.formatDecimal(discountCardStats.cardStats.totalSaved, 1, 2) + ' ₽' :
+                         '0 ₽'}">0 ₽</p>
+                                    <p class="text-gray-600 text-sm">Всего сэкономлено</p>
+                                </div>
+                            </div>
+                            <div th:unless="${discountCardStats?.cardStats != null}" class="text-center py-4">
+                                <p class="text-gray-500 text-sm">Статистика недоступна</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Прогресс использования карты -->
+                    <div th:if="${discountCardStats.activeCard.usageLimit > 0}" class="mt-6 bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Прогресс использования карты</span>
+                            <span class="text-sm text-gray-600">
+                    <span th:text="${discountCardStats.activeCard.usageCount}"></span> /
+                    <span th:text="${discountCardStats.activeCard.usageLimit}"></span>
+                </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div th:style="'width: ' + ${(discountCardStats.activeCard.usageCount / discountCardStats.activeCard.usageLimit) * 100} + '%;'"
+                                 class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full transition-all duration-300"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Осталось использований:
+                            <span th:text="${discountCardStats.activeCard.usageLimit - discountCardStats.activeCard.usageCount}"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Сообщение если нет активной карты -->
+                <div th:unless="${discountCardStats.activeCard}" class="text-center py-8 border-2 border-dashed border-gray-300 rounded-xl">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-credit-card text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">У вас нет активной скидочной карты</h3>
+                    <p class="text-gray-500 mb-4">Получите карту и экономьте на каждом заказе</p>
+                    <a href="/discount-cards"
+                       class="inline-flex items-center bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-300">
+                        <i class="fas fa-gift mr-2"></i>
+                        Получить карту
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${orders.empty}" class="text-center py-8">
+                <i class="fas fa-box-open text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600">У вас пока нет заказов</p>
+                <a href="/order" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    Сделать заказ
+                </a>
+            </div>
+
+            <div th:each="order : ${orders}" class="bg-white rounded-lg shadow mb-4">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-semibold">Заказ #<span th:text="${order.id}"></span></h3>
+                            <p class="text-sm text-gray-600" th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></p>
+                        </div>
+                        <div class="text-right">
+                            <!-- Отображение суммы с учетом скидки -->
+                            <div th:if="${order.discountAmount != null && order.discountAmount > 0}">
+                                <p class="text-sm text-gray-500 line-through" th:text="${order.totalAmount} + ' ₽'"></p>
+                                <p class="font-bold text-lg text-green-600" th:text="${order.finalAmount} + ' ₽'"></p>
+                            </div>
+                            <div th:unless="${order.discountAmount != null && order.discountAmount > 0}">
+                                <p class="font-bold text-lg" th:text="${order.totalAmount} + ' ₽'"></p>
+                            </div>
+                            <span th:classappend="|${order.status == 'PENDING'} ? 'bg-yellow-100 text-yellow-800' :
+                                                 ${order.status == 'PROCESSING'} ? 'bg-blue-100 text-blue-800' :
+                                                 ${order.status == 'COMPLETED'} ? 'bg-green-100 text-green-800' :
+                                                 'bg-red-100 text-red-800'|"
+                                  class="px-2 py-1 text-xs rounded"
+                                  th:text="${order.status}"></span>
+                        </div>
+                    </div>
+
+                    <!-- Информация о скидочной карте -->
+                    <div th:if="${order.usedDiscountCard != null}">
+                        <div class="discount-card-info">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold text-white">🛍️ Применена скидочная карта</h4>
+                                    <p class="text-sm opacity-90">
+                                        <strong th:text="${order.usedDiscountCard.cardName}"></strong>
+                                        (<span th:text="${order.usedDiscountCard.code}"></span>)
+                                    </p>
+                                    <p class="text-xs opacity-80 mt-1">
+                                        Скидка:
+                                        <span th:if="${order.usedDiscountCard.discountType == 'PERCENTAGE'}"
+                                              th:text="${order.usedDiscountCard.discountValue} + '%'"></span>
+                                        <span th:if="${order.usedDiscountCard.discountType == 'FIXED_AMOUNT'}"
+                                              th:text="${order.usedDiscountCard.discountValue} + ' ₽'"></span>
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="discount-badge" th:text="'-' + ${order.discountAmount} + ' ₽'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4">
+                        <h4 class="font-medium mb-2">Товары:</h4>
+                        <div th:each="item : ${order.items}" class="border rounded p-4 mb-3 bg-gray-50">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="md:col-span-2">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="font-medium" th:text="${item.serviceName}"></span>
+                                        <span th:text="${item.quantity} + ' × ' + ${item.price} + ' ₽'"></span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-2" th:text="${item.dimensions}"></p>
+
+                                    <!-- Отображение фото -->
+                                    <div th:if="${item.photoUrl}">
+                                        <p class="text-sm text-gray-600 mb-2">
+                                            <strong>Загруженное фото:</strong>
+                                            <span th:text="${item.photoUrl}"></span>
+                                        </p>
+                                        <div class="flex space-x-2">
+                                            <button class="view-image-btn bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                                    th:attr="data-photo-url=${item.photoUrl}">
+                                                Просмотреть
+                                            </button>
+                                            <button class="download-image-btn bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                                                    th:attr="data-photo-url=${item.photoUrl}">
+                                                Скачать
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div th:unless="${item.photoUrl}" class="text-red-500 text-sm">
+                                        Фото не загружено
+                                    </div>
+                                </div>
+
+                                <!-- Миниатюра фото -->
+                                <div class="flex justify-center">
+                                    <div th:if="${item.photoUrl}">
+                                        <img th:src="${item.photoUrl}"
+                                             alt="Загруженное фото"
+                                             class="max-w-full h-24 object-cover rounded border order-image view-image-btn"
+                                             th:attr="data-photo-url=${item.photoUrl}"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="image-placeholder" style="display: none;">
+                                            Ошибка загрузки
+                                        </div>
+                                    </div>
+                                    <div th:unless="${item.photoUrl}" class="image-placeholder">
+                                        Нет фото
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Дополнительная информация о заказе -->
+                    <div class="border-t pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div>
+                            <p><strong>Email:</strong> <span th:text="${order.customerEmail}"></span></p>
+                            <p><strong>Телефон:</strong> <span th:text="${order.customerPhone}"></span></p>
+                        </div>
+                        <div>
+                            <p th:if="${order.usedDiscountCard != null}">
+                                <strong>Скидочная карта:</strong>
+                                <span th:text="${order.usedDiscountCard.cardName}"></span>
+                                (<span th:text="${order.usedDiscountCard.code}"></span>)
+                            </p>
+                            <p th:if="${order.discountAmount != null && order.discountAmount > 0}">
+                                <strong>Сумма скидки:</strong>
+                                <span class="text-green-600 font-semibold" th:text="'-' + ${order.discountAmount} + ' ₽'"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Модальное окно для просмотра изображения -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-4 max-w-4xl max-h-[90vh] mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Просмотр изображения</h3>
+            <button onclick="closeImageModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
+                &times;
+            </button>
+        </div>
+        <div class="overflow-auto max-h-[80vh] flex items-center justify-center">
+            <img id="modalImage" src="" alt="Просмотр изображения" class="max-w-full max-h-full"
+                 onerror="this.style.display='none'; document.getElementById('modalError').style.display='block';">
+            <div id="modalError" class="hidden text-red-500 text-center">
+                <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+                <p>Не удалось загрузить изображение</p>
+            </div>
+        </div>
+        <div class="mt-4 flex justify-between">
+            <button id="downloadModalBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Скачать
+            </button>
+            <button onclick="closeImageModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                Закрыть
+            </button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    let currentImageFileName = '';
+    let currentImageUrl = '';
+
+    // Функция для извлечения имени файла из URL
+    function getFileNameFromUrl(url) {
+        if (!url) return '';
+        if (!url.includes('/')) {
+            return url;
+        }
+        return url.substring(url.lastIndexOf('/') + 1);
+    }
+
+    // Функция для получения полного URL файла
+    function getFileUrl(photoUrl) {
+        if (photoUrl && photoUrl.startsWith('/api/files/')) {
+            return photoUrl;
+        }
+        if (photoUrl && !photoUrl.includes('/')) {
+            return '/api/files/' + photoUrl;
+        }
+        return photoUrl;
+    }
+
+    // Функция для просмотра изображения
+    function viewImage(photoUrl) {
+        const fileUrl = getFileUrl(photoUrl);
+        currentImageFileName = getFileNameFromUrl(photoUrl);
+        currentImageUrl = fileUrl;
+
+        document.getElementById('modalImage').style.display = 'block';
+        document.getElementById('modalError').style.display = 'none';
+        document.getElementById('modalImage').src = fileUrl;
+        document.getElementById('imageModal').classList.remove('hidden');
+        document.getElementById('imageModal').classList.add('flex');
+
+        console.log('Opening image:', fileUrl);
+    }
+
+    // Функция для закрытия модального окна
+    function closeImageModal() {
+        document.getElementById('imageModal').classList.add('hidden');
+        document.getElementById('imageModal').classList.remove('flex');
+        currentImageFileName = '';
+        currentImageUrl = '';
+    }
+
+    // Функция для скачивания текущего изображения
+    function downloadCurrentImage() {
+        if (currentImageFileName) {
+            downloadImage(currentImageFileName);
+        }
+    }
+
+    // Функция для скачивания изображения
+    function downloadImage(fileName) {
+        const downloadUrl = `/api/files/download/${fileName}`;
+        console.log('Downloading:', downloadUrl);
+
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Обработчики событий для кнопок
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('view-image-btn')) {
+                const photoUrl = event.target.getAttribute('data-photo-url');
+                if (photoUrl) {
+                    viewImage(photoUrl);
+                }
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('download-image-btn')) {
+                const photoUrl = event.target.getAttribute('data-photo-url');
+                if (photoUrl) {
+                    const fileName = getFileNameFromUrl(photoUrl);
+                    downloadImage(fileName);
+                }
+            }
+        });
+
+        document.getElementById('downloadModalBtn').addEventListener('click', function() {
+            downloadCurrentImage();
+        });
+
+        console.log('Page loaded, checking images...');
+        document.querySelectorAll('img[data-photo-url]').forEach(img => {
+            const photoUrl = img.getAttribute('data-photo-url');
+            const fileUrl = getFileUrl(photoUrl);
+            console.log('Image data-photo-url:', photoUrl);
+            console.log('Resolved file URL:', fileUrl);
+
+            img.onerror = function() {
+                console.error('Failed to load image:', this.src);
+            };
+            img.onload = function() {
+                console.log('Successfully loaded image:', this.src);
+            };
+        });
+    });
+
+    // Закрытие модального окна по ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+
+    // Закрытие модального окна по клику на фон
+    document.addEventListener('click', function(event) {
+        if (event.target.id === 'imageModal') {
+            closeImageModal();
+        }
+    });
+</script>
+</body>
+</html>

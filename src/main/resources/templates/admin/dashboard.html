@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head}">
+    <title>Дашборд - Админ панель</title>
+</head>
+<body>
+<div th:replace="admin/layout :: header"></div>
+
+<div class="flex">
+    <div th:replace="admin/layout :: aside"></div>
+
+    <main class="flex-1 p-6">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Дашборд</h1>
+            <p class="text-gray-600">Общая статистика и последние заказы</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-600">Всего заказов</p>
+                        <h3 class="text-2xl font-bold" id="totalOrders">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-clock text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-600">В обработке</p>
+                        <h3 class="text-2xl font-bold" id="pendingOrders">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                        <i class="fas fa-print text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-600">Услуг</p>
+                        <h3 class="text-2xl font-bold" id="totalServices">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-orange-100 text-orange-600">
+                        <i class="fas fa-ruble-sign text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-600">Выручка</p>
+                        <h3 class="text-2xl font-bold" id="totalRevenue">0 ₽</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b">
+                <h2 class="text-lg font-semibold">Последние заказы</h2>
+            </div>
+            <div class="p-6">
+                <div id="recentOrders" class="space-y-4">
+                    <!-- Orders will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardStats();
+        loadRecentOrders();
+    });
+
+    async function loadDashboardStats() {
+        try {
+            const response = await fetch('/api/admin/statistics');
+            const stats = await response.json();
+
+            document.getElementById('totalOrders').textContent = stats.totalOrders || 0;
+            document.getElementById('pendingOrders').textContent = stats.pendingOrders || 0;
+            document.getElementById('totalServices').textContent = stats.totalServices || 0;
+            document.getElementById('totalRevenue').textContent = (stats.totalRevenue || 0) + ' ₽';
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    async function loadRecentOrders() {
+        try {
+            const response = await fetch('/api/admin/orders/recent');
+            const orders = await response.json();
+
+            const container = document.getElementById('recentOrders');
+            if (orders.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">Нет заказов</p>';
+                return;
+            }
+
+            container.innerHTML = orders.map(order => `
+                <div class="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                        <h4 class="font-semibold">Заказ #${order.id}</h4>
+                        <p class="text-sm text-gray-600">${order.customerEmail}</p>
+                        <p class="text-sm">${new Date(order.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold">${order.totalAmount} ₽</p>
+                        <span class="inline-block px-2 py-1 text-xs rounded ${
+                            order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            order.status === 'PROCESSING' ? 'bg-blue-100 text-blue-800' :
+                            'bg-green-100 text-green-800'
+                        }">${order.status}</span>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading orders:', error);
+        }
+    }
+</script>
+</body>
+</html>

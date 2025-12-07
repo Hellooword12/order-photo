@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}">
+    <title>Контакты - PhotoPrint</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Контакты</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <!-- Contact Information -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-6 text-blue-600">Наши контакты</h2>
+
+            <div class="space-y-6">
+                <!-- Address -->
+                <div class="flex items-start">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-map-marker-alt text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-1">Адрес</h3>
+                        <p class="text-gray-600">г. Москва, ул. Примерная, д. 123<br>ТЦ "Фотоцентр", 2 этаж</p>
+                    </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="flex items-start">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-phone text-green-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-1">Телефон</h3>
+                        <p class="text-gray-600">
+                            <a href="tel:+74951234567" class="hover:text-blue-600">+7 (495) 123-45-67</a><br>
+                            <a href="tel:+79876543210" class="hover:text-blue-600">+7 (987) 654-32-10</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="flex items-start">
+                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-envelope text-purple-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-1">Email</h3>
+                        <p class="text-gray-600">
+                            <a href="mailto:info@photoprint.ru" class="hover:text-blue-600">info@photoprint.ru</a><br>
+                            <a href="mailto:orders@photoprint.ru" class="hover:text-blue-600">orders@photoprint.ru</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Working Hours -->
+                <div class="flex items-start">
+                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-clock text-orange-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-1">Режим работы</h3>
+                        <p class="text-gray-600">
+                            Пн-Пт: 9:00 - 21:00<br>
+                            Сб-Вс: 10:00 - 20:00
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map and Additional Info -->
+        <div class="space-y-6">
+            <!-- Map Placeholder -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-4 text-blue-600">Мы на карте</h2>
+                <div class="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
+                    <div class="text-center text-gray-500">
+                        <i class="fas fa-map text-4xl mb-2"></i>
+                        <p>Карта будет здесь</p>
+                        <p class="text-sm">(интеграция с Яндекс.Картами или Google Maps)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-4 text-blue-600">Мы в соцсетях</h2>
+                <div class="flex space-x-4 justify-center">
+                    <a href="#" class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition duration-300">
+                        <i class="fab fa-vk"></i>
+                    </a>
+                    <a href="#" class="w-12 h-12 bg-pink-600 text-white rounded-full flex items-center justify-center hover:bg-pink-700 transition duration-300">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition duration-300">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                    <a href="#" class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition duration-300">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="bg-blue-50 rounded-lg p-8 mb-12">
+        <h2 class="text-2xl font-bold mb-6 text-center">Часто задаваемые вопросы</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+                <h3 class="font-bold mb-2 text-blue-600">Как долго выполняется заказ?</h3>
+                <p class="text-gray-600">Стандартная печать занимает 1-2 часа. Фотокниги - от 3 до 5 рабочих дней.</p>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+                <h3 class="font-bold mb-2 text-blue-600">Можно ли заказать срочную печать?</h3>
+                <p class="text-gray-600">Да, мы предлагаем услугу срочной печати. Стоимость уточняйте у оператора.</p>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+                <h3 class="font-bold mb-2 text-blue-600">Какие форматы файлов принимаются?</h3>
+                <p class="text-gray-600">Мы принимаем JPG, PNG, TIFF. Рекомендуемое разрешение - не менее 300 DPI.</p>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-sm">
+                <h3 class="font-bold mb-2 text-blue-600">Есть ли парковка?</h3>
+                <p class="text-gray-600">Да, рядом с ТЦ есть бесплатная парковка на 2 часа для наших клиентов.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Find Us -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-4 text-center text-blue-600">Как нас найти</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div class="p-4">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-subway text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="font-bold mb-2">Метро</h3>
+                <p class="text-gray-600">Станция "Центральная"<br>5 минут пешком</p>
+            </div>
+            <div class="p-4">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-bus text-2xl text-green-600"></i>
+                </div>
+                <h3 class="font-bold mb-2">Автобус</h3>
+                <p class="text-gray-600">Остановка "Фотоцентр"<br>Автобусы № 12, 45, 67</p>
+            </div>
+            <div class="p-4">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-car text-2xl text-orange-600"></i>
+                </div>
+                <h3 class="font-bold mb-2">На машине</h3>
+                <p class="text-gray-600">Бесплатная парковка<br>на 2 часа для клиентов</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

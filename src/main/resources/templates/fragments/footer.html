@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Footer Fragment -->
+<footer th:fragment="footer" class="bg-gray-800 text-white mt-16">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Company Info -->
+            <div>
+                <h3 class="text-lg font-bold mb-4">PhotoPrint</h3>
+                <p class="text-gray-300">Профессиональная печать фотографий</p>
+            </div>
+
+            <!-- Contacts -->
+            <div>
+                <h3 class="text-lg font-bold mb-4">Контакты</h3>
+                <div class="space-y-2 text-gray-300">
+                    <p><i class="fas fa-phone mr-2"></i> +7 (999) 123-45-67</p>
+                    <p><i class="fas fa-envelope mr-2"></i> info@photoprint.ru</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-300">
+            <p>&copy; 2025 PhotoPrint. Все права защищены.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

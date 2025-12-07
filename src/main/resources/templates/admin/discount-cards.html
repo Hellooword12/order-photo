@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head}">
+    <title>Скидочные карты - Админ панель</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div th:replace="~{admin/layout :: header}"></div>
+
+<div class="flex">
+    <div th:replace="~{admin/layout :: aside}"></div>
+
+    <main class="flex-1 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Управление скидочными картами</h1>
+                <p class="text-gray-600">Создание и управление скидочными картами</p>
+            </div>
+            <button onclick="openCreateModal()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center">
+                <i class="fas fa-plus mr-2"></i>
+                Создать карту
+            </button>
+        </div>
+
+        <!-- Cards Table -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b">
+                <h2 class="text-lg font-semibold">Список карт</h2>
+            </div>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Код карты</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Название</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Скидка</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Владелец</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Статистика</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Статус</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody id="cardsTableBody">
+                        <!-- Cards will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Create/Edit Card Modal -->
+<div id="cardModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold" id="modalTitle">Создать карту</h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="cardForm" onsubmit="saveCard(event)">
+            <input type="hidden" id="cardId">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Код карты</label>
+                    <input type="text" id="code" placeholder="Автогенерация если оставить пустым"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Название карты *</label>
+                    <input type="text" id="cardName" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Золотая карта, Серебряная карта и т.д.">
+                </div>
+
+                <!-- Привязка к пользователю -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Привязать к пользователю</label>
+                    <div class="flex space-x-2">
+                        <select id="userId"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Не привязывать</option>
+                            <!-- Users will be loaded here -->
+                        </select>
+                        <button type="button" onclick="loadUsers()"
+                                class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 flex items-center">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Обновить
+                        </button>
+                    </div>
+                    <div id="userSearch" class="mt-2 hidden">
+                        <input type="text" id="userSearchInput"
+                               placeholder="Поиск пользователя по email..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div id="userSearchResults" class="mt-2 max-h-40 overflow-y-auto border rounded-md hidden">
+                            <!-- Search results will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Тип скидки *</label>
+                    <select id="discountType" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="PERCENTAGE">Процентная</option>
+                        <option value="FIXED_AMOUNT">Фиксированная сумма</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Значение скидки *</label>
+                    <input type="number" id="discountValue" step="0.01" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Лимит использований</label>
+                    <input type="number" id="usageLimit"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="0 = безлимит">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Действует с</label>
+                        <input type="datetime-local" id="validFrom"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Действует до</label>
+                        <input type="datetime-local" id="validTo"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="active" class="mr-2" checked>
+                    <label class="text-sm font-medium text-gray-700">Активна</label>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                    Отмена
+                </button>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let allUsers = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Discount cards page loaded');
+        loadCards();
+        loadUsers();
+    });
+
+    // Загрузка списка пользователей
+  async function loadUsers() {
+    try {
+        console.log('Loading users...');
+        // Используем правильный endpoint из AdminUserController
+        const response = await fetch('/api/admin/users');
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        allUsers = await response.json();
+        console.log('Users loaded:', allUsers);
+        populateUserSelect();
+    } catch (error) {
+        console.error('Error loading users:', error);
+        alert('Ошибка загрузки списка пользователей: ' + error.message);
+    }
+}
+
+    // Заполнение выпадающего списка пользователей
+    function populateUserSelect() {
+        const userSelect = document.getElementById('userId');
+        userSelect.innerHTML = '<option value="">Не привязывать</option>';
+
+        allUsers.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = `${user.name || user.username} (${user.email}) - ${user.phoneNumber || 'нет телефона'}`;
+            userSelect.appendChild(option);
+        });
+    }
+
+    // Поиск пользователей
+    function searchUsers(query) {
+        const resultsContainer = document.getElementById('userSearchResults');
+        resultsContainer.innerHTML = '';
+
+        if (!query) {
+            resultsContainer.classList.add('hidden');
+            return;
+        }
+
+        const filteredUsers = allUsers.filter(user =>
+            user.email.toLowerCase().includes(query.toLowerCase()) ||
+            (user.name && user.name.toLowerCase().includes(query.toLowerCase())) ||
+            (user.username && user.username.toLowerCase().includes(query.toLowerCase()))
+        );
+
+        if (filteredUsers.length === 0) {
+            resultsContainer.innerHTML = '<div class="p-2 text-gray-500">Пользователи не найдены</div>';
+        } else {
+            filteredUsers.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.className = 'p-2 border-b cursor-pointer hover:bg-gray-100';
+                userElement.innerHTML = `
+                    <div class="font-medium">${user.name || user.username}</div>
+                    <div class="text-sm text-gray-600">${user.email}</div>
+                    <div class="text-xs text-gray-500">${user.phoneNumber || 'Телефон не указан'}</div>
+                `;
+                userElement.onclick = () => selectUser(user);
+                resultsContainer.appendChild(userElement);
+            });
+        }
+
+        resultsContainer.classList.remove('hidden');
+    }
+
+    function selectUser(user) {
+        document.getElementById('userId').value = user.id;
+        document.getElementById('userSearchInput').value = '';
+        document.getElementById('userSearchResults').classList.add('hidden');
+
+        // Показываем информацию о выбранном пользователе
+        const userInfo = document.createElement('div');
+        userInfo.className = 'mt-2 p-2 bg-green-50 border border-green-200 rounded';
+        userInfo.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <strong>Выбран:</strong> ${user.name || user.username} (${user.email})
+                </div>
+                <button type="button" onclick="clearUserSelection()" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        const existingInfo = document.querySelector('.user-selection-info');
+        if (existingInfo) {
+            existingInfo.remove();
+        }
+
+        userInfo.className += ' user-selection-info';
+        document.getElementById('userId').parentNode.appendChild(userInfo);
+    }
+
+    function clearUserSelection() {
+        document.getElementById('userId').value = '';
+        const userInfo = document.querySelector('.user-selection-info');
+        if (userInfo) {
+            userInfo.remove();
+        }
+    }
+
+    async function loadCards() {
+        const tbody = document.getElementById('cardsTableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p class="mt-2">Загрузка данных...</p>
+                </td>
+            </tr>
+        `;
+
+        try {
+            console.log('Fetching discount cards...');
+            const response = await fetch('/api/admin/discount-cards');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const cards = await response.json();
+            console.log('Cards loaded:', cards);
+            displayCards(cards);
+        } catch (error) {
+            console.error('Error loading cards:', error);
+            tbody.innerHTML =
+                `<tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-red-500">
+                        Ошибка загрузки данных: ${error.message}
+                        <br>
+                        <button onclick="loadCards()" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            Попробовать снова
+                        </button>
+                    </td>
+                </tr>`;
+        }
+    }
+
+    function displayCards(cards) {
+        const tbody = document.getElementById('cardsTableBody');
+
+        if (!cards || cards.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Карты не найдены</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = cards.map(card => `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-3 font-mono font-bold">${card.code || 'N/A'}</td>
+                <td class="px-4 py-3">${card.cardName || 'Без названия'}</td>
+                <td class="px-4 py-3">
+                    ${card.discountType === 'PERCENTAGE' ? (card.discountValue || 0) + '%' : (card.discountValue || 0) + ' ₽'}
+                </td>
+                <td class="px-4 py-3">
+                    ${card.userName ? `${card.userName} (${card.userEmail})` : 'Не привязана'}
+                    ${card.userId ? `<br><span class="text-xs text-gray-500">ID: ${card.userId}</span>` : ''}
+                </td>
+                <td class="px-4 py-3">
+                    <div class="text-sm">
+                        <div>Заказов: ${card.totalOrders || 0}</div>
+                        <div>Потрачено: ${card.totalSpent || 0} ₽</div>
+                        <div>Использований: ${card.usageCount || 0}${card.usageLimit ? ` / ${card.usageLimit}` : ''}</div>
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <span class="inline-block px-2 py-1 text-xs rounded ${
+                        card.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }">${card.active ? 'Активна' : 'Неактивна'}</span>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex space-x-2">
+                        <button onclick="editCard(${card.id})"
+                                class="text-blue-600 hover:text-blue-800 p-2 rounded hover:bg-blue-50"
+                                title="Редактировать">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteCard(${card.id})"
+                                class="text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50"
+                                title="Удалить">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        ${card.userId ? `
+                        <button onclick="unassignCard(${card.id})"
+                                class="text-orange-600 hover:text-orange-800 p-2 rounded hover:bg-orange-50"
+                                title="Отвязать от пользователя">
+                            <i class="fas fa-unlink"></i>
+                        </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function openCreateModal() {
+        console.log('Opening create modal');
+        document.getElementById('modalTitle').textContent = 'Создать карту';
+        document.getElementById('cardForm').reset();
+        document.getElementById('cardId').value = '';
+        document.getElementById('active').checked = true;
+        document.getElementById('userId').value = '';
+        clearUserSelection();
+        openModal();
+    }
+
+    async function editCard(cardId) {
+        try {
+            console.log('Editing card:', cardId);
+            const response = await fetch(`/api/admin/discount-cards/${cardId}`);
+            if (!response.ok) {
+                throw new Error('Card not found');
+            }
+            const card = await response.json();
+
+            document.getElementById('modalTitle').textContent = 'Редактировать карту';
+            document.getElementById('cardId').value = card.id;
+            document.getElementById('code').value = card.code || '';
+            document.getElementById('cardName').value = card.cardName || '';
+            document.getElementById('discountType').value = card.discountType || 'PERCENTAGE';
+            document.getElementById('discountValue').value = card.discountValue || '';
+            document.getElementById('usageLimit').value = card.usageLimit || '';
+            document.getElementById('validFrom').value = card.validFrom ? formatDateTimeForInput(card.validFrom) : '';
+            document.getElementById('validTo').value = card.validTo ? formatDateTimeForInput(card.validTo) : '';
+            document.getElementById('active').checked = card.active !== false;
+
+            // Устанавливаем пользователя если есть
+            if (card.userId) {
+                document.getElementById('userId').value = card.userId;
+                // Создаем информацию о выбранном пользователе
+                const userInfo = document.createElement('div');
+                userInfo.className = 'mt-2 p-2 bg-green-50 border border-green-200 rounded user-selection-info';
+                userInfo.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <strong>Привязан:</strong> ${card.userName || 'Пользователь'} (${card.userEmail})
+                        </div>
+                        <button type="button" onclick="clearUserSelection()" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                document.getElementById('userId').parentNode.appendChild(userInfo);
+            } else {
+                document.getElementById('userId').value = '';
+            }
+
+            openModal();
+        } catch (error) {
+            console.error('Error loading card:', error);
+            alert('Ошибка при загрузке карты: ' + error.message);
+        }
+    }
+
+    // Функция для отвязки карты от пользователя
+    async function unassignCard(cardId) {
+        if (confirm('Вы уверены, что хотите отвязать карту от пользователя?')) {
+            try {
+                const response = await fetch(`/api/admin/discount-cards/${cardId}/unassign`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    loadCards();
+                    alert('Карта отвязана от пользователя');
+                } else {
+                    const error = await response.text();
+                    alert('Ошибка при отвязке карты: ' + error);
+                }
+            } catch (error) {
+                console.error('Error unassigning card:', error);
+                alert('Ошибка при отвязке карты: ' + error.message);
+            }
+        }
+    }
+
+    function formatDateTimeForInput(dateTimeStr) {
+        if (!dateTimeStr) return '';
+        const date = new Date(dateTimeStr);
+        return date.toISOString().slice(0, 16);
+    }
+
+    async function saveCard(event) {
+    event.preventDefault();
+    console.log('Saving card...');
+
+    const cardData = {
+        id: document.getElementById('cardId').value || null,
+        code: document.getElementById('code').value || '',
+        cardName: document.getElementById('cardName').value,
+        discountType: document.getElementById('discountType').value,
+        discountValue: parseFloat(document.getElementById('discountValue').value),
+        usageLimit: document.getElementById('usageLimit').value ? parseInt(document.getElementById('usageLimit').value) : null,
+        validFrom: document.getElementById('validFrom').value || null,
+        validTo: document.getElementById('validTo').value || null,
+        active: document.getElementById('active').checked,
+        userId: document.getElementById('userId').value || null  // Может быть null
+    };
+
+    // Валидация
+    if (cardData.discountValue <= 0) {
+        alert('Значение скидки должно быть больше 0');
+        return;
+    }
+
+    // Преобразуем даты в правильный формат
+    if (cardData.validFrom) {
+        cardData.validFrom = new Date(cardData.validFrom).toISOString();
+    }
+    if (cardData.validTo) {
+        cardData.validTo = new Date(cardData.validTo).toISOString();
+    }
+
+    // Если userId пустая строка, устанавливаем null
+    if (cardData.userId === '') {
+        cardData.userId = null;
+    }
+
+    console.log('Card data to save:', cardData);
+
+    try {
+        const url = cardData.id ? `/api/admin/discount-cards/${cardData.id}` : '/api/admin/discount-cards';
+        const method = cardData.id ? 'PUT' : 'POST';
+
+        console.log('Sending request:', { url, method, cardData });
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(cardData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Card saved:', result);
+            closeModal();
+            loadCards();
+            alert('Карта успешно сохранена');
+        } else {
+            const errorText = await response.text();
+            console.error('Server error:', errorText);
+
+            // Пытаемся распарсить JSON ошибку
+            try {
+                const errorData = JSON.parse(errorText);
+                alert('Ошибка при сохранении: ' + (errorData.message || errorData));
+            } catch {
+                alert('Ошибка при сохранении: ' + errorText);
+            }
+        }
+    } catch (error) {
+        console.error('Error saving card:', error);
+        alert('Ошибка при сохранении карты: ' + error.message);
+    }
+}
+
+    async function deleteCard(cardId) {
+        if (confirm('Вы уверены, что хотите удалить эту карту?')) {
+            try {
+                const response = await fetch(`/api/admin/discount-cards/${cardId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadCards();
+                    alert('Карта удалена');
+                } else {
+                    const error = await response.text();
+                    alert('Ошибка при удалении карты: ' + error);
+                }
+            } catch (error) {
+                console.error('Error deleting card:', error);
+                alert('Ошибка при удалении карты: ' + error.message);
+            }
+        }
+    }
+
+    function openModal() {
+        document.getElementById('cardModal').classList.remove('hidden');
+        document.getElementById('cardModal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('cardModal').classList.add('hidden');
+        document.getElementById('cardModal').classList.remove('flex');
+    }
+
+    // Инициализация поиска пользователей
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('userSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                searchUsers(e.target.value);
+            });
+        }
+    });
+</script>
+</body>
+</html>

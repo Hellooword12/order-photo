@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}">
+    <title>Услуги - PhotoPrint</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">Наши услуги</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <!-- Service Card 1 -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                <i class="fas fa-print text-6xl text-white"></i>
+            </div>
+            <div class="p-6">
+                <h3 class="text-xl font-bold mb-3">Классическая печать</h3>
+                <p class="text-gray-600 mb-4">Печать фотографий стандартных размеров на качественной матовой или глянцевой бумаге</p>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>10x15 см</span>
+                        <span class="font-bold">50 ₽</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>15x20 см</span>
+                        <span class="font-bold">80 ₽</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>20x30 см</span>
+                        <span class="font-bold">120 ₽</span>
+                    </div>
+                </div>
+                <a href="/order" class="block w-full bg-blue-600 text-white text-center py-2 rounded mt-4 hover:bg-blue-700">
+                    Заказать
+                </a>
+            </div>
+        </div>
+
+        <!-- Service Card 2 -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-48 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                <i class="fas fa-id-card text-6xl text-white"></i>
+            </div>
+            <div class="p-6">
+                <h3 class="text-xl font-bold mb-3">Печать визиток</h3>
+                <p class="text-gray-600 mb-4">Быстрая печать визиток любого вида с соблюдением ваших требований</p>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>3x4 см (4 шт)</span>
+                        <span class="font-bold">150 ₽</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>3.5x4.5 см (4 шт)</span>
+                        <span class="font-bold">180 ₽</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Виза (5x5 см)</span>
+                        <span class="font-bold">200 ₽</span>
+                    </div>
+                </div>
+                <a href="/order" class="block w-full bg-green-600 text-white text-center py-2 rounded mt-4 hover:bg-green-700">
+                    Заказать
+                </a>
+            </div>
+        </div>
+
+        <!-- Service Card 3 -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-48 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                <i class="fas fa-book text-6xl text-white"></i>
+            </div>
+            <div class="p-6">
+                <h3 class="text-xl font-bold mb-3">Календари</h3>
+                <p class="text-gray-600 mb-4">Создание профессиональных календарей с вашими фотографиями</p>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>20x20 см (10 стр)</span>
+                        <span class="font-bold">1500 ₽</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>25x25 см (15 стр)</span>
+                        <span class="font-bold">2500 ₽</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>30x30 см (20 стр)</span>
+                        <span class="font-bold">3500 ₽</span>
+                    </div>
+                </div>
+                <a href="/order" class="block w-full bg-purple-600 text-white text-center py-2 rounded mt-4 hover:bg-purple-700">
+                    Заказать
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="bg-blue-50 rounded-lg p-8">
+        <h2 class="text-2xl font-bold mb-4 text-center">Почему выбирают нас?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <i class="fas fa-award text-3xl text-blue-600 mb-3"></i>
+                <h3 class="font-bold mb-2">Высокое качество</h3>
+                <p class="text-gray-600">Профессиональное оборудование и материалы</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-clock text-3xl text-blue-600 mb-3"></i>
+                <h3 class="font-bold mb-2">Быстрая печать</h3>
+                <p class="text-gray-600">Выполнение заказов в кратчайшие сроки</p>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-truck text-3xl text-blue-600 mb-3"></i>
+                <h3 class="font-bold mb-2">Удобство</h3>
+                <p class="text-gray-600">Онлайн заказ и самовывоз в центре города</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

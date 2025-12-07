@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панель - PhotoPrint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100">
+<!-- Header Fragment -->
+<header th:fragment="header" class="bg-white shadow-sm border-b">
+    <div class="flex items-center justify-between p-4">
+        <div class="flex items-center space-x-4">
+            <a href="/" class="flex items-center space-x-2 text-primary">
+                <i class="fas fa-camera-retro text-2xl"></i>
+                <span class="text-xl font-bold">PhotoPrint Admin</span>
+            </a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-gray-600">Администратор</span>
+            <a href="/" class="bg-primary text-white px-4 py-2 rounded hover:bg-secondary">
+                <i class="fas fa-home mr-2"></i>На сайт
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- Main Layout Fragment -->
+<div th:fragment="main-layout">
+    <div class="flex">
+        <!-- Sidebar Fragment -->
+        <aside th:fragment="sidebar" class="w-64 bg-white h-screen shadow-sm">
+            <nav class="p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/admin" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-primary">
+                            <i class="fas fa-tachometer-alt w-5"></i>
+                            <span>Дашборд</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/services" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-primary">
+                            <i class="fas fa-print w-5"></i>
+                            <span>Услуги</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/orders" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-primary">
+                            <i class="fas fa-shopping-cart w-5"></i>
+                            <span>Заказы</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/discount-cards" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-primary">
+                            <i class="fas fa-tag w-5"></i>
+                            <span>Скидочные карты</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/settings" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-primary">
+                            <i class="fa-solid fa-wrench"></i>
+                            <span>Настройки</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6">
+            <div th:insert="~{${content}}"></div>
+        </main>
+    </div>
+</div>
+
+<!-- Script Fragment -->
+<script th:fragment="scripts">
+    // Highlight active menu item
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const menuItems = document.querySelectorAll('aside a');
+
+        menuItems.forEach(item => {
+            if (item.getAttribute('href') === currentPath) {
+                item.classList.add('bg-blue-50', 'text-primary', 'font-semibold');
+            }
+        });
+    });
+</script>
+</body>
+</html>

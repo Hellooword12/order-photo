@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head}">
+    <title>Промокоды - Админ панель</title>
+</head>
+<body>
+<div th:replace="admin/layout :: header"></div>
+
+<div class="flex">
+    <div th:replace="admin/layout :: aside"></div>
+
+    <main class="flex-1 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Управление промокодами</h1>
+                <p class="text-gray-600">Создание и управление промокодами</p>
+            </div>
+            <button onclick="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                + Создать промокод
+            </button>
+        </div>
+
+        <!-- Coupons Table -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b">
+                <h2 class="text-lg font-semibold">Список промокодов</h2>
+            </div>
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Код</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Тип скидки</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Значение</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Использовано</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Срок действия</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Статус</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody id="couponsTableBody">
+                        <!-- Coupons will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Create/Edit Coupon Modal -->
+<div id="couponModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold" id="modalTitle">Создать промокод</h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="couponForm" onsubmit="saveCoupon(event)">
+            <input type="hidden" id="couponId">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Код *</label>
+                    <input type="text" id="code" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Тип скидки *</label>
+                    <select id="discountType" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="PERCENTAGE">Процентная</option>
+                        <option value="FIXED_AMOUNT">Фиксированная сумма</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Значение скидки *</label>
+                    <input type="number" id="discountValue" step="0.01" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Лимит использований</label>
+                    <input type="number" id="usageLimit"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="0 = безлимит">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Действует с</label>
+                        <input type="datetime-local" id="validFrom"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Действует до</label>
+                        <input type="datetime-local" id="validTo"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="active" class="mr-2">
+                    <label class="text-sm font-medium text-gray-700">Активен</label>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                    Отмена
+                </button>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Сохранить
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCoupons();
+    });
+
+    async function loadCoupons() {
+        try {
+            const response = await fetch('/api/admin/coupons');
+            const coupons = await response.json();
+
+            displayCoupons(coupons);
+        } catch (error) {
+            console.error('Error loading coupons:', error);
+        }
+    }
+
+    function displayCoupons(coupons) {
+        const tbody = document.getElementById('couponsTableBody');
+
+        if (coupons.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Промокоды не найдены</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = coupons.map(coupon => `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-3 font-mono">${coupon.code}</td>
+                <td class="px-4 py-3">${getDiscountTypeText(coupon.discountType)}</td>
+                <td class="px-4 py-3">
+                    ${coupon.discountType === 'PERCENTAGE' ? coupon.discountValue + '%' : coupon.discountValue + ' ₽'}
+                </td>
+                <td class="px-4 py-3">
+                    ${coupon.usedCount}${coupon.usageLimit ? ` / ${coupon.usageLimit}` : ''}
+                </td>
+                <td class="px-4 py-3">
+                    ${formatDateRange(coupon.validFrom, coupon.validTo)}
+                </td>
+                <td class="px-4 py-3">
+                    <span class="inline-block px-2 py-1 text-xs rounded ${
+                        coupon.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }">${coupon.active ? 'Активен' : 'Неактивен'}</span>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex space-x-2">
+                        <button onclick="editCoupon(${coupon.id})" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteCoupon(${coupon.id})" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function getDiscountTypeText(type) {
+        return type === 'PERCENTAGE' ? 'Процентная' : 'Фиксированная';
+    }
+
+    function formatDateRange(from, to) {
+        if (!from && !to) return 'Бессрочно';
+
+        const fromStr = from ? new Date(from).toLocaleDateString() : '∞';
+        const toStr = to ? new Date(to).toLocaleDateString() : '∞';
+
+        return `${fromStr} - ${toStr}`;
+    }
+
+    function openCreateModal() {
+        document.getElementById('modalTitle').textContent = 'Создать промокод';
+        document.getElementById('couponForm').reset();
+        document.getElementById('couponId').value = '';
+        document.getElementById('active').checked = true;
+        openModal();
+    }
+
+    async function editCoupon(couponId) {
+        try {
+            const response = await fetch(`/api/admin/coupons/${couponId}`);
+            const coupon = await response.json();
+
+            document.getElementById('modalTitle').textContent = 'Редактировать промокод';
+            document.getElementById('couponId').value = coupon.id;
+            document.getElementById('code').value = coupon.code;
+            document.getElementById('discountType').value = coupon.discountType;
+            document.getElementById('discountValue').value = coupon.discountValue;
+            document.getElementById('usageLimit').value = coupon.usageLimit || '';
+            document.getElementById('validFrom').value = coupon.validFrom ? formatDateTimeForInput(coupon.validFrom) : '';
+            document.getElementById('validTo').value = coupon.validTo ? formatDateTimeForInput(coupon.validTo) : '';
+            document.getElementById('active').checked = coupon.active;
+
+            openModal();
+        } catch (error) {
+            console.error('Error loading coupon:', error);
+        }
+    }
+
+    function formatDateTimeForInput(dateTimeStr) {
+        const date = new Date(dateTimeStr);
+        return date.toISOString().slice(0, 16);
+    }
+
+async function saveCoupon(event) {
+    event.preventDefault();
+
+    const couponData = {
+        id: document.getElementById('couponId').value || null,
+        code: document.getElementById('code').value,
+        discountType: document.getElementById('discountType').value,
+        discountValue: parseFloat(document.getElementById('discountValue').value),
+        usageLimit: document.getElementById('usageLimit').value ? parseInt(document.getElementById('usageLimit').value) : null,
+        validFrom: document.getElementById('validFrom').value || null,
+        validTo: document.getElementById('validTo').value || null,
+        active: document.getElementById('active').checked
+    };
+
+    // Преобразуем даты в правильный формат
+    if (couponData.validFrom) {
+        couponData.validFrom = new Date(couponData.validFrom).toISOString();
+    }
+    if (couponData.validTo) {
+        couponData.validTo = new Date(couponData.validTo).toISOString();
+    }
+
+    try {
+        const url = couponData.id ? `/api/admin/coupons/${couponData.id}` : '/api/admin/coupons';
+        const method = couponData.id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(couponData)
+        });
+
+        if (response.ok) {
+            closeModal();
+            loadCoupons();
+            alert('Промокод сохранен');
+        } else {
+            const error = await response.text();
+            alert('Ошибка при сохранении: ' + error);
+        }
+    } catch (error) {
+        console.error('Error saving coupon:', error);
+        alert('Ошибка при сохранении промокода');
+    }
+}
+
+    async function deleteCoupon(couponId) {
+        if (confirm('Вы уверены, что хотите удалить этот промокод?')) {
+            try {
+                const response = await fetch(`/api/admin/coupons/${couponId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadCoupons();
+                    alert('Промокод удален');
+                } else {
+                    alert('Ошибка при удалении промокода');
+                }
+            } catch (error) {
+                console.error('Error deleting coupon:', error);
+                alert('Ошибка при удалении промокода');
+            }
+        }
+    }
+
+    function openModal() {
+        document.getElementById('couponModal').classList.remove('hidden');
+        document.getElementById('couponModal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('couponModal').classList.add('hidden');
+        document.getElementById('couponModal').classList.remove('flex');
+    }
+</script>
+</body>
+</html>
