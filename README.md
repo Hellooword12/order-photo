@@ -60,3 +60,13 @@
 - Apache Maven 3.8+
 - MySQL
 - Любая современная IDE (IntelliJ IDEA, Eclipse, VS Code)
+
+<div align="center">
+Order Photo System © 2024
+Профессиональное решение для онлайн-заказа фотопечати
+
+https://img.shields.io/badge/Spring%2520Boot-3.x-brightgreen
+https://img.shields.io/badge/Java-17+-orange
+https://img.shields.io/badge/PostgreSQL-15+-blue
+
+</div>
